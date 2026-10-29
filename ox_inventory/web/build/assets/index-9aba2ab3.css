@@ -1,0 +1,1259 @@
+/* ==========================================================================
+   Ox Inventory – Glass UI
+   Ohne box-shadow / backdrop-filter: Glas-Effekt über Verläufe,
+   transparente Flächen, feine Lichtkanten (1px-Borders + Highlight-Gradients)
+   ========================================================================== */
+
+:root {
+    --glass-fill: linear-gradient(160deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 60%, rgba(255, 255, 255, 0.08) 100%);
+    --glass-fill-strong: linear-gradient(160deg, rgba(28, 30, 42, 0.86) 0%, rgba(18, 19, 28, 0.82) 100%);
+    --glass-fill-soft: linear-gradient(160deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.03) 100%);
+    --glass-highlight: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 45%);
+    --glass-border: rgba(255, 255, 255, 0.16);
+    --glass-border-soft: rgba(255, 255, 255, 0.10);
+    --accent: rgba(132, 160, 255, 0.85);
+    --accent-solid: #8aa4ff;
+    --accent-soft: rgba(132, 160, 255, 0.22);
+    --accent-pink: #ff8fdc;
+    --text: #f4f6ff;
+    --text-muted: rgba(244, 246, 255, 0.6);
+    --radius-xl: 24px;
+    --radius-lg: 18px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+    --radius-pill: 999px;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    height: 100vh;
+    background: none !important;
+    overflow: hidden !important;
+    user-select: none;
+    color: var(--text);
+}
+
+#root {
+    height: 100%;
+}
+
+code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+
+p {
+    margin: 0;
+    padding: 0;
+    font-family: Roboto, sans-serif;
+    color: var(--text);
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.app-wrapper {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ---------- Context Menu ---------- */
+
+.context-menu-list {
+    min-width: 200px;
+    background-color: rgba(22, 23, 33, 0.82);
+    background-image: var(--glass-highlight);
+    color: var(--text);
+    padding: 8px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    outline: none;
+}
+
+.context-menu-item {
+    padding: 9px 14px;
+    border-radius: var(--radius-pill);
+    background-color: transparent;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.context-menu-item:hover {
+    background-color: var(--accent-soft);
+}
+
+.context-menu-item:active {
+    transform: scale(0.97);
+}
+
+.tooltip-description {
+    padding-top: 5px;
+}
+
+.tooltip-markdown > p {
+    margin: 0;
+}
+
+/* ---------- Buttons ---------- */
+
+button {
+    background-color: rgba(255, 255, 255, 0.08);
+    background-image: var(--glass-highlight);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-pill);
+    padding: 9px 18px;
+    color: var(--text);
+    cursor: pointer;
+    font-family: Roboto, sans-serif;
+    font-weight: 500;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+button:hover {
+    background-color: var(--accent-soft);
+    border-color: var(--accent);
+}
+
+button:active {
+    transform: scale(0.97);
+}
+
+/* ---------- Drag Preview ---------- */
+
+.item-drag-preview {
+    width: 7.7vh;
+    height: 7.7vh;
+    z-index: 1000;
+    position: fixed;
+    pointer-events: none;
+    top: 0;
+    left: 0;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 7vh;
+    image-rendering: -webkit-optimize-contrast;
+    opacity: 0.9;
+}
+
+/* ---------- Layout ---------- */
+
+.inventory-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    gap: 24px;
+}
+
+/* ---------- Inventory Control (Seitenpanel) ---------- */
+
+.inventory-control {
+    display: flex;
+}
+
+.inventory-control .inventory-control-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    justify-content: center;
+    align-items: center;
+    padding: 18px 14px;
+    border-radius: var(--radius-xl);
+    background: var(--glass-fill);
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--glass-border);
+}
+
+.inventory-control .inventory-control-input {
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    padding: 13px 14px;
+    border-radius: var(--radius-pill);
+    font-family: Roboto, sans-serif;
+    font-size: 15px;
+    text-align: center;
+    outline: none;
+    border: 1px solid var(--glass-border-soft);
+    color: var(--text);
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+.inventory-control .inventory-control-input:focus-within {
+    background-color: rgba(255, 255, 255, 0.12);
+    border-color: var(--accent);
+}
+
+.inventory-control .inventory-control-button {
+    font-size: 13px;
+    color: var(--text);
+    background-color: rgba(255, 255, 255, 0.07);
+    background-image: var(--glass-highlight);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    padding: 10px 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--glass-border);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-family: Roboto, sans-serif;
+    width: 100%;
+    font-weight: 500;
+}
+
+.inventory-control .inventory-control-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--text);
+}
+
+.inventory-control .inventory-control-button:hover {
+    background-color: var(--accent-soft);
+    border-color: var(--accent);
+}
+
+/* Schließen optisch abgesetzt: nur Text, ohne Glasfläche */
+.inventory-control .inventory-control-button.inventory-control-close {
+    background: transparent !important;
+    background-image: none !important;
+    border-color: transparent !important;
+    color: var(--text-muted) !important;
+    text-transform: uppercase;
+    margin-top: 6px;
+    padding: 6px 10px;
+}
+
+.inventory-control .inventory-control-button.inventory-control-close:hover {
+    background: transparent !important;
+    border-color: transparent !important;
+    color: var(--text) !important;
+}
+
+/* Mengenfeld als Stepper: −  [ Zahl ]  + */
+.inventory-control-stepper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.inventory-control-stepper .inventory-control-input {
+    flex: 1;
+    min-width: 0;
+}
+
+.inventory-control-step {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+    border-radius: 50% !important;
+}
+
+/* Gestaffelte Einblendung der Slots */
+@keyframes slotIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.inventory-grid-container > .inventory-slot {
+    /* backwards statt both, damit das Inline-Opacity beim Drag erhalten bleibt */
+    animation: slotIn 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.inventory-grid-container > .inventory-slot:nth-child(1) { animation-delay: 14ms; }
+.inventory-grid-container > .inventory-slot:nth-child(2) { animation-delay: 28ms; }
+.inventory-grid-container > .inventory-slot:nth-child(3) { animation-delay: 42ms; }
+.inventory-grid-container > .inventory-slot:nth-child(4) { animation-delay: 56ms; }
+.inventory-grid-container > .inventory-slot:nth-child(5) { animation-delay: 70ms; }
+.inventory-grid-container > .inventory-slot:nth-child(6) { animation-delay: 84ms; }
+.inventory-grid-container > .inventory-slot:nth-child(7) { animation-delay: 98ms; }
+.inventory-grid-container > .inventory-slot:nth-child(8) { animation-delay: 112ms; }
+.inventory-grid-container > .inventory-slot:nth-child(9) { animation-delay: 126ms; }
+.inventory-grid-container > .inventory-slot:nth-child(10) { animation-delay: 140ms; }
+.inventory-grid-container > .inventory-slot:nth-child(11) { animation-delay: 154ms; }
+.inventory-grid-container > .inventory-slot:nth-child(12) { animation-delay: 168ms; }
+.inventory-grid-container > .inventory-slot:nth-child(13) { animation-delay: 182ms; }
+.inventory-grid-container > .inventory-slot:nth-child(14) { animation-delay: 196ms; }
+.inventory-grid-container > .inventory-slot:nth-child(15) { animation-delay: 210ms; }
+.inventory-grid-container > .inventory-slot:nth-child(16) { animation-delay: 224ms; }
+.inventory-grid-container > .inventory-slot:nth-child(17) { animation-delay: 238ms; }
+.inventory-grid-container > .inventory-slot:nth-child(18) { animation-delay: 252ms; }
+.inventory-grid-container > .inventory-slot:nth-child(19) { animation-delay: 266ms; }
+.inventory-grid-container > .inventory-slot:nth-child(20) { animation-delay: 280ms; }
+.inventory-grid-container > .inventory-slot:nth-child(21) { animation-delay: 294ms; }
+.inventory-grid-container > .inventory-slot:nth-child(22) { animation-delay: 308ms; }
+.inventory-grid-container > .inventory-slot:nth-child(23) { animation-delay: 322ms; }
+.inventory-grid-container > .inventory-slot:nth-child(24) { animation-delay: 336ms; }
+.inventory-grid-container > .inventory-slot:nth-child(25) { animation-delay: 350ms; }
+.inventory-grid-container > .inventory-slot:nth-child(26) { animation-delay: 364ms; }
+.inventory-grid-container > .inventory-slot:nth-child(27) { animation-delay: 378ms; }
+.inventory-grid-container > .inventory-slot:nth-child(28) { animation-delay: 392ms; }
+.inventory-grid-container > .inventory-slot:nth-child(29) { animation-delay: 406ms; }
+.inventory-grid-container > .inventory-slot:nth-child(30) { animation-delay: 420ms; }
+.inventory-grid-container > .inventory-slot:nth-child(31) { animation-delay: 434ms; }
+.inventory-grid-container > .inventory-slot:nth-child(32) { animation-delay: 448ms; }
+.inventory-grid-container > .inventory-slot:nth-child(33) { animation-delay: 462ms; }
+.inventory-grid-container > .inventory-slot:nth-child(34) { animation-delay: 476ms; }
+.inventory-grid-container > .inventory-slot:nth-child(35) { animation-delay: 490ms; }
+.inventory-grid-container > .inventory-slot:nth-child(36) { animation-delay: 504ms; }
+.inventory-grid-container > .inventory-slot:nth-child(37) { animation-delay: 518ms; }
+.inventory-grid-container > .inventory-slot:nth-child(38) { animation-delay: 532ms; }
+.inventory-grid-container > .inventory-slot:nth-child(39) { animation-delay: 546ms; }
+.inventory-grid-container > .inventory-slot:nth-child(40) { animation-delay: 560ms; }
+.inventory-grid-container > .inventory-slot:nth-child(n+41) {
+    animation-delay: 560ms;
+}
+
+
+/* ---------- Dialog ---------- */
+
+.useful-controls-dialog {
+    background-color: rgba(22, 23, 33, 0.88);
+    background-image: var(--glass-highlight);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text);
+    width: 460px;
+    display: flex;
+    flex-direction: column;
+    padding: 22px;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--glass-border);
+    gap: 18px;
+}
+
+.useful-controls-dialog-overlay {
+    background-color: rgba(8, 9, 14, 0.45);
+    border-radius: var(--radius-xl);
+}
+
+.useful-controls-dialog-title {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.useful-controls-dialog-close {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: var(--radius-pill);
+    fill: var(--text);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.useful-controls-dialog-close:hover {
+    background-color: var(--accent-soft);
+}
+
+.useful-controls-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.divider {
+    width: 100%;
+    height: 1px;
+    border-radius: var(--radius-pill);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+.useful-controls-button {
+    position: absolute !important;
+    bottom: 25px;
+    right: 25px;
+    transition: background-color 0.2s ease !important;
+    border: 1px solid var(--glass-border) !important;
+    color: var(--text);
+    width: 54px;
+    height: 54px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50% !important;
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    background-image: var(--glass-highlight);
+}
+
+.useful-controls-button:hover {
+    background-color: var(--accent-soft) !important;
+}
+
+.useful-controls-exit-button {
+    position: absolute !important;
+    right: 10px;
+    top: 10px;
+    border-radius: var(--radius-pill) !important;
+    color: var(--text-muted) !important;
+    border: none !important;
+    background-color: transparent !important;
+}
+
+/* ---------- Inventory Grid ---------- */
+
+.inventory-grid-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    border-radius: var(--radius-xl);
+    background: var(--glass-fill);
+    background-color: rgba(18, 19, 28, 0.45);
+    border: 1px solid var(--glass-border);
+}
+
+.inventory-grid-header-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 4px;
+}
+
+.inventory-grid-header-wrapper p {
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+.inventory-grid-container {
+    display: grid;
+    height: calc(52.1vh + 10px);
+    grid-template-columns: repeat(5, 10.2vh);
+    grid-auto-rows: 10.42vh;
+    gap: 8px;
+    overflow-y: scroll;
+    padding: 2px;
+}
+
+/* ---------- Slots ---------- */
+
+.inventory-slot,
+.item-notification-item-box,
+.hotbar-item-slot {
+    background-color: rgba(255, 255, 255, 0.05);
+    background-image: var(--glass-fill-soft);
+    background-repeat: no-repeat;
+    background-position: center;
+    border-radius: var(--radius-md);
+    image-rendering: -webkit-optimize-contrast;
+    position: relative;
+    background-size: 7vh;
+    color: var(--text);
+    border: 1px solid var(--glass-border-soft);
+    overflow: hidden;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.inventory-slot:hover {
+    background-color: rgba(255, 255, 255, 0.10);
+    border-color: var(--glass-border);
+}
+
+.inventory-slot-label-box {
+    background-color: rgba(18, 19, 28, 0.6);
+    color: var(--text);
+    text-align: center;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    border-top: 1px solid var(--glass-border-soft);
+}
+
+.inventory-slot-label-text {
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 3px 6px;
+    font-weight: 500;
+    font-family: Roboto, sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.03em;
+}
+
+.inventory-slot-number {
+    background: linear-gradient(135deg, #ffffff, #d9e1ff);
+    color: #0b0c12;
+    height: 14px;
+    line-height: 14px;
+    border-radius: var(--radius-pill);
+    padding: 0 6px;
+    margin: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: Roboto, sans-serif;
+    display: inline-block;
+}
+
+.item-slot-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    padding: 2px;
+}
+
+.item-slot-wrapper p {
+    font-size: 11px;
+}
+
+.item-slot-header-wrapper,
+.item-hotslot-header-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+.item-hotslot-header-wrapper {
+    justify-content: space-between !important;
+}
+
+.item-slot-info-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-self: flex-end;
+    padding: 4px;
+    gap: 4px;
+}
+
+.item-slot-info-wrapper p {
+    font-size: 11px;
+}
+
+.item-slot-currency-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    padding-right: 4px;
+}
+
+.item-slot-currency-wrapper p {
+    font-size: 13px;
+    font-weight: 500;
+    text-shadow: 0.1vh 0.1vh 0 rgba(0, 0, 0, 0.5);
+}
+
+.item-slot-price-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    padding-right: 4px;
+}
+
+.item-slot-price-wrapper p {
+    font-size: 13px;
+    font-weight: 500;
+    text-shadow: 0.1vh 0.1vh 0 rgba(0, 0, 0, 0.5);
+}
+
+/* ---------- Tooltip ---------- */
+
+.tooltip-wrapper {
+    pointer-events: none;
+    display: flex;
+    background-color: rgba(22, 23, 33, 0.85);
+    background-image: var(--glass-highlight);
+    width: 210px;
+    padding: 12px 14px;
+    flex-direction: column;
+    min-width: 210px;
+    color: var(--text);
+    font-family: Roboto, sans-serif;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--glass-border);
+}
+
+.tooltip-wrapper p {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.45;
+}
+
+.tooltip-header-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tooltip-header-wrapper p {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.tooltip-crafting-duration {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.tooltip-crafting-duration svg {
+    padding-right: 4px;
+}
+
+.tooltip-crafting-duration p {
+    font-size: 13px;
+}
+
+.tooltip-ingredients {
+    padding-top: 8px;
+}
+
+.tooltip-ingredient {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 3px 0;
+}
+
+.tooltip-ingredient img {
+    width: 28px;
+    height: 28px;
+    padding-right: 6px;
+}
+
+/* ---------- Hotbar ---------- */
+
+.hotbar-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    width: 100%;
+    position: absolute;
+    bottom: 2.5vh;
+    padding: 10px 12px;
+    border-radius: var(--radius-xl);
+    background-color: rgba(18, 19, 28, 0.4);
+    background-image: var(--glass-fill-soft);
+    border: 1px solid var(--glass-border-soft);
+    box-sizing: border-box;
+    /* Zentrierung ohne transform, sonst überschreibt die Slide-Animation
+       translateX und die Leiste springt kurz nach rechts */
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: fit-content;
+}
+
+.hotbar-item-slot {
+    width: 10.2vh;
+    height: 10.2vh;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    background-color: rgba(12, 13, 20, 0.35);
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.hotbar-item-slot:hover {
+    border-color: var(--accent-pink);
+    background-color: rgba(255, 143, 220, 0.14);
+}
+
+.hotbar-slot-header-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 2px 2px 0;
+}
+
+/* ---------- Item Notifications ---------- */
+
+.item-notification-container {
+    display: flex;
+    overflow-x: scroll;
+    flex-wrap: nowrap;
+    gap: 8px;
+    position: absolute;
+    bottom: 22vh;
+    left: 50%;
+    width: 100%;
+    margin-left: calc(50% - 5.1vh);
+    transform: translate(-50%);
+}
+
+.item-notification-action-box {
+    width: 100%;
+    color: var(--text);
+    background-color: rgba(18, 19, 28, 0.55);
+    text-transform: uppercase;
+    text-align: center;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    font-family: Roboto, sans-serif;
+    margin-bottom: 4px;
+}
+
+.item-notification-action-box p {
+    font-size: 10px;
+    padding: 3px 4px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+.item-notification-item-box {
+    height: 10.2vh;
+    width: 10.2vh;
+    border-radius: var(--radius-lg);
+}
+
+/* ---------- Bars ---------- */
+
+.durability-bar {
+    background: rgba(0, 0, 0, 0.35);
+    height: 4px;
+    overflow: hidden;
+    border-radius: var(--radius-pill);
+    margin: 0 4px 4px;
+}
+
+.weight-bar {
+    background: rgba(0, 0, 0, 0.3);
+    height: 0.8vh;
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ---------- Transitions ---------- */
+
+.transition-fade-enter {
+    opacity: 0;
+}
+
+.transition-fade-enter-active {
+    opacity: 1;
+    transition: opacity 0.25s ease;
+}
+
+.transition-fade-exit {
+    opacity: 1;
+}
+
+.transition-fade-exit-active {
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.transition-slide-up-enter {
+    transform: translateY(120px);
+    opacity: 0;
+}
+
+.transition-slide-up-enter-active {
+    transform: translateY(0);
+    opacity: 1;
+    transition: all 0.25s ease;
+}
+
+.transition-slide-up-exit {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.transition-slide-up-exit-active {
+    transform: translateY(120px);
+    opacity: 0;
+    transition: all 0.25s ease;
+}
+
+/* ==========================================================================
+   Aktionsfeld: nur Icons, schmal
+   ========================================================================== */
+
+.inventory-control .inventory-control-wrapper {
+    width: auto;
+    padding: 14px 12px;
+    gap: 10px;
+}
+
+.inventory-control-stepper {
+    width: 132px;
+    gap: 6px;
+}
+
+.inventory-control-stepper .inventory-control-input {
+    width: 100%;
+    padding: 10px 4px;
+    font-size: 14px;
+}
+
+.inventory-control-step {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+}
+
+.inventory-control .inventory-control-button {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    gap: 0;
+    border-radius: 50% !important;
+}
+
+/* Schließen: kleines, dezentes X, durch eine Linie abgesetzt */
+.inventory-control .inventory-control-wrapper > .inventory-control-close,
+.inventory-control .inventory-control-button.inventory-control-close {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    margin-top: 6px;
+    position: relative;
+    background: transparent !important;
+    background-image: none !important;
+    border: none !important;
+    color: var(--text-muted) !important;
+}
+
+.inventory-control .inventory-control-button.inventory-control-close::before {
+    content: "";
+    position: absolute;
+    top: -9px;
+    left: 4px;
+    right: 4px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+.inventory-control .inventory-control-button.inventory-control-close:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: var(--text) !important;
+}
+
+/* ==========================================================================
+   Feinschliff
+   ========================================================================== */
+
+/* Hotbar: Tastenanzeige schwebt als kleiner Chip über der Ecke statt im Item */
+.hotbar-item-slot {
+    overflow: visible;
+}
+
+.hotbar-item-slot > .item-slot-wrapper,
+.hotbar-item-slot .item-slot-wrapper {
+    border-radius: inherit;
+    overflow: hidden;
+}
+
+.hotbar-item-slot .inventory-slot-number {
+    position: absolute;
+    top: -7px;
+    left: -7px;
+    z-index: 2;
+    margin: 0;
+    height: 16px;
+    line-height: 16px;
+    min-width: 16px;
+    padding: 0 5px;
+    text-align: center;
+    font-size: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-sizing: border-box;
+}
+
+.hotbar-container {
+    gap: 10px;
+    padding: 12px 14px;
+    background-color: rgba(18, 19, 28, 0.45);
+}
+
+.hotbar-item-slot:hover {
+    transform: translateY(-2px);
+}
+
+/* Inventar: etwas ruhigere Typografie und Abstände */
+.inventory-grid-header-wrapper p {
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    color: rgba(244, 246, 255, 0.92);
+}
+
+.inventory-grid-wrapper {
+    padding: 18px 18px 14px;
+    gap: 10px;
+}
+
+.inventory-grid-container {
+    gap: 9px;
+    padding: 2px 2px 14px;
+}
+
+.inventory-slot-number {
+    height: 13px;
+    line-height: 13px;
+    font-size: 10px;
+    margin: 5px;
+    padding: 0 5px;
+}
+
+.inventory-slot-label-text {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    padding: 4px 6px;
+}
+
+.inventory-slot:hover {
+    transform: translateY(-1px);
+}
+
+.inventory-control .inventory-control-input {
+    font-weight: 500;
+}
+/* ---------- Item Notifications v5 (wie Inventar-Slot, Glas) ---------- */
+
+:root {
+    --notif-add: #4ade80;
+    --notif-remove: #f87171;
+    --notif-equip: #fbbf24;
+    --notif-holster: #60a5fa;
+    --notif-neutral: #e5e7eb;
+}
+
+.item-notification-container {
+    position: absolute;
+    top: 50%;
+    bottom: auto;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: max-content;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 1vh;
+    overflow: visible;
+}
+
+/* Rahmen wie .inventory-slot, mit Glas-Hintergrund und Lichtkante */
+.item-notif {
+    --nc: var(--notif-neutral);
+    position: relative;
+    box-sizing: border-box;
+    width: 12vh;
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-md);
+    color: var(--text);
+    background-color: rgba(12, 13, 20, 0.5);
+    background-image: var(--glass-fill);
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22),
+        0 8px 22px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+    pointer-events: none;
+    animation: notifIn 0.45s cubic-bezier(0.2, 0.9, 0.25, 1.1) both;
+}
+
+.item-notif--add { --nc: var(--notif-add); }
+.item-notif--remove { --nc: var(--notif-remove); }
+.item-notif--equip { --nc: var(--notif-equip); }
+.item-notif--holster { --nc: var(--notif-holster); }
+
+.item-notif.is-leaving {
+    animation: notifOut 0.3s ease-in both;
+}
+
+/* Bildbereich */
+.item-notif-image {
+    position: relative;
+    height: 8vh;
+    background-color: rgba(255, 255, 255, 0.04);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 62%;
+    image-rendering: -webkit-optimize-contrast;
+}
+
+/* Nummern-Badge wie im Inventar, oben links */
+.item-notif-image .inventory-slot-number {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    margin: 0;
+    z-index: 2;
+    text-shadow: none;
+}
+
+/* Aktion: oben rechts, Icon + Text in Typfarbe */
+.item-notif-kind {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    height: 16px;
+    padding: 0 6px 0 4px;
+    box-sizing: border-box;
+    border-radius: var(--radius-pill);
+    background: rgba(12, 13, 20, 0.7);
+    border: 1px solid color-mix(in srgb, var(--nc) 70%, transparent);
+    color: color-mix(in srgb, var(--nc) 70%, white);
+    font-family: Roboto, sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+    animation: kindIn 0.4s 0.15s ease-out both;
+}
+
+.item-notif-icon {
+    width: 10px;
+    height: 10px;
+    display: inline-grid;
+    flex: 0 0 auto;
+}
+
+.item-notif-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* Namensstreifen wie im Inventar, etwas kontrastreicher */
+.item-notif .inventory-slot-label-box {
+    background-color: rgba(12, 13, 20, 0.7);
+    border-top: 1px solid var(--glass-border);
+    border-radius: 0;
+}
+
+.item-notif .inventory-slot-label-text {
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 6px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+/* Restzeit: dünne Linie ganz unten */
+.item-notif-timer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.item-notif-timer span {
+    display: block;
+    height: 100%;
+    background: var(--nc);
+    opacity: 0.85;
+    transform-origin: left center;
+    animation: timerDrain 4s linear both;
+}
+
+/* Typ-Effekte */
+.item-notif--add .item-notif-image {
+    animation: badgePop 0.4s 0.05s ease-out both;
+}
+
+.item-notif--remove .item-notif-image {
+    animation: notifShake 0.4s 0.15s ease-in-out both;
+}
+
+.item-notif--remove .inventory-slot-label-text {
+    text-decoration: line-through;
+    text-decoration-color: var(--nc);
+    opacity: 0.85;
+}
+
+.item-notif--equip .item-notif-image::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--nc);
+    opacity: 0;
+    animation: equipRing 0.7s 0.1s ease-out both;
+    pointer-events: none;
+}
+
+.item-notif--holster {
+    animation: holsterIn 0.5s cubic-bezier(0.3, 0.8, 0.3, 1) both;
+}
+
+@keyframes notifIn {
+    0%   { opacity: 0; transform: translateY(24px) scale(0.96); }
+    100% { opacity: 1; transform: none; }
+}
+
+@keyframes notifOut {
+    to { opacity: 0; transform: translateX(-10px); }
+}
+
+@keyframes kindIn {
+    from { opacity: 0; transform: translateX(6px); }
+    to   { opacity: 1; transform: none; }
+}
+
+@keyframes badgePop {
+    0%   { transform: scale(0.7); }
+    70%  { transform: scale(1.06); }
+    100% { transform: scale(1); }
+}
+
+@keyframes timerDrain {
+    from { transform: scaleX(1); }
+    to   { transform: scaleX(0); }
+}
+
+@keyframes notifShake {
+    0%, 100% { transform: translateX(0); }
+    25%      { transform: translateX(-3px); }
+    50%      { transform: translateX(3px); }
+    75%      { transform: translateX(-1px); }
+}
+
+@keyframes equipRing {
+    0%   { opacity: 0.9; transform: scale(0.95); }
+    100% { opacity: 0;   transform: scale(1.4); }
+}
+
+@keyframes holsterIn {
+    0%   { opacity: 0; transform: translateX(-16px); }
+    100% { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .item-notif,
+    .item-notif *:not(.item-notif-timer span) {
+        animation-duration: 0.01ms !important;
+        animation-delay: 0ms !important;
+    }
+}
+
+/* ---------- Item Notifications v6: Kopfstreifen statt Overlay (keine Überlappung) ---------- */
+
+.item-notif-head {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 20px;
+    padding: 0 4px;
+    box-sizing: border-box;
+    background-color: rgba(12, 13, 20, 0.7);
+    border-bottom: 1px solid var(--glass-border-soft);
+    overflow: hidden;
+}
+
+.item-notif-head .inventory-slot-number {
+    position: static;
+    flex: 0 0 auto;
+    margin: 0;
+    height: 14px;
+    line-height: 14px;
+    padding: 0 5px;
+    font-size: 9px;
+}
+
+.item-notif-kind {
+    position: static;
+    margin-left: auto;
+    min-width: 0;
+    height: 14px;
+    max-width: 100%;
+    padding: 0 6px 0 4px;
+    gap: 3px;
+    border-radius: var(--radius-pill);
+    animation: none;
+}
+
+.item-notif-kind-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.item-notif-image {
+    height: 8vh;
+    background-size: 60%;
+    background-position: center;
+}
+
+.item-notif .inventory-slot-label-box {
+    flex: 0 0 auto;
+}
+
+.item-notif--equip .item-notif-image::after {
+    inset: 4px;
+}
+
+/* ---------- Item Notifications v7: fester Anker, Meldungen nebeneinander ---------- */
+
+/* Fester Anker: Mitte horizontal (Startpunkt), knapp über der Hotbar. Neue Meldungen wachsen nach rechts. */
+.item-notification-container {
+    position: absolute;
+    top: auto;
+    bottom: 15vh;
+    left: calc(50% - 6vh);
+    transform: none;
+    width: max-content;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: flex-end;
+    gap: 0;
+    overflow: visible;
+}
+
+.item-notif + .item-notif {
+    margin-left: 1vh;
+}
+
+/* Verschwinden: Meldung schrumpft zur Seite, damit die anderen gleitend nachrücken */
+@keyframes notifOut {
+    0%   { opacity: 1; width: 12vh; }
+    100% { opacity: 0; width: 0; margin-left: 0; }
+}
